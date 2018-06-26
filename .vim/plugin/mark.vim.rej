@@ -1,0 +1,52 @@
+***************
+*** 440,445 ****
+  	endif
+  endfunction
+  
+  " Restore previous 'cpo' value
+  let &cpo = s:save_cpo
+  
+--- 440,482 ----
+  	endif
+  endfunction
+  
++ " easwy add
++ " return the mark string under the cursor. multi-lines marks not supported
++ function! <SID>RedoMarkWord()
++ 	" define variables if they don't exist
++ 	call s:InitMarkVariables()
++ 
++ 	let i = 1
++   while i <= g:mwCycleMax
++     if b:mwWord{i} != ""
++       " quote regexp with / etc. e.g. pattern => /pattern/
++       let quote = "/?~!@#$%^&*+-=,.:"
++       let j = 0
++       while j < strlen(quote)
++         if stridx(b:mwWord{i}, quote[j]) < 0
++           let quoted_regexp = quote[j] . b:mwWord{i} . quote[j]
++           break
++         endif
++         let j = j + 1
++       endwhile
++       if j >= strlen(quote)
++         return -1
++       endif
++ 
++       " highlight the word
++       exe "syntax clear MarkWord" . i
++       exe "syntax match MarkWord" . i . " " . quoted_regexp . " containedin=ALL"
++     endif
++     let i = i + 1
++   endwhile
++ endfunction
++ 
++ augroup markword
++   autocmd!
++   autocmd BufWinEnter * call <SID>RedoMarkWord()
++ augroup END
++ " easwy end
++ 
+  " Restore previous 'cpo' value
+  let &cpo = s:save_cpo
+  
